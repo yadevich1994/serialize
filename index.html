@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serialization and Deserialization Test</title>
+</head>
+<body>
+    <h1>Serialization and Deserialization Test</h1>
+    <button id="runTests">Run Tests</button>
+    <pre id="results"></pre>
+
+    <script>
+        function serialize(numbers) {
+            let bitArray = new Uint8Array(300);
+            for (let number of numbers) {
+                if (number >= 1 && number <= 300) {
+                    bitArray[number - 1] = 1;
+                }
+            }
+
+            let binaryString = Array.from(bitArray).map(bit => bit ? '1' : '0').join('');
+            let compressedString = btoa(binaryString);
+
+            return compressedString;
+        }
+
+        function deserialize(compressedString) {
+            let binaryString = atob(compressedString);
+            let bitArray = Uint8Array.from(binaryString.split('').map(bit => bit === '1' ? 1 : 0));
+
+            let numbers = [];
+            bitArray.forEach((bit, index) => {
+                if (bit === 1) {
+                    numbers.push(index + 1);
+                }
+            });
+
+            return numbers;
+        }
+
+        function runTests() {
+            const tests = [
+                { input: [1, 2, 3, 4, 5], description: 'Первые 5 чисел' },
+                { input: [10, 20, 30, 40, 50], description: 'Каждое 10-е число' },
+                { input: Array.from({ length: 50 }, () => Math.floor(Math.random() * 300) + 1), description: 'Случайные 50 чисел' },
+                { input: Array.from({ length: 100 }, () => Math.floor(Math.random() * 300) + 1), description: 'Случайные 100 чисел' },
+                { input: Array.from({ length: 500 }, () => Math.floor(Math.random() * 300) + 1), description: 'Случайные 500 чисел' },
+                { input: Array.from({ length: 1000 }, () => Math.floor(Math.random() * 300) + 1), description: 'Случайные 1000 чисел' },
+                { input: Array.from({ length: 100 }, (_, i) => i + 1), description: 'Числа от 1 до 100' },
+                { input: Array.from({ length: 200 }, (_, i) => i + 101), description: 'Числа от 101 до 300' },
+            ];
+
+            let results = '';
+
+            for (let test of tests) {
+                let { input, description } = test;
+                let serialized = serialize(input);
+                let deserialized = deserialize(serialized);
+                let compressionRatio = (JSON.stringify(input).length / serialized.length).toFixed(2);
+
+                results += `Тест: ${description}\n`;
+                results += `Исходные данные: ${input.length} чисел\n`;
+                results += `Сериализованные данные: ${serialized.length} символов\n`;
+                results += `Десериализованные данные корректны: ${JSON.stringify(input) === JSON.stringify(deserialized)}\n`;
+                results += `Коэффициент сжатия: ${compressionRatio}\n`;
+                results += '---\n';
+            }
+
+            document.getElementById('results').textContent = results;
+        }
+
+        document.getElementById('runTests').addEventListener('click', runTests);
+    </script>
+</body>
+</html>
